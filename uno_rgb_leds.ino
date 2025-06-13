@@ -5,10 +5,9 @@
 #define LED_TYPE WS2812
 #define COLOR_ORDER GRB
 #define BRIGHTNESS 100
-#define NUM_LEDS 8
+#define NUM_LEDS 28
 
 CRGB leds[NUM_LEDS];
-
 
 
 uint32_t last_pixel_update_ms = 0;
@@ -37,9 +36,75 @@ void rotate_pixels(void)
   }
 }
 
+#define BIG_RING_START 0
+#define BIG_RING_SIZE 16
+#define SMALL_RING_START 16
+#define SMALL_RING_SIZE 12
+
+int big_ring_red_pos = BIG_RING_START;
+int small_ring_red_pos = SMALL_RING_START;
+
+void rotate_rings(void)
+{
+  uint32_t current_ms;
+  int i;
+  
+  current_ms = millis();
+
+  /* is it time for an update? */
+  if (current_ms > last_pixel_update_ms + PIXEL_UPDATE_RATE_MS)
+  {
+    /* Update the big ring */
+    for (i = BIG_RING_START; i < BIG_RING_SIZE; i++)
+    {
+      if (i == big_ring_red_pos)
+      {
+        leds[i] = CRGB::Red;
+      }
+      else
+      {
+        leds[i] = CRGB::Blue;
+      }
+    }
+    big_ring_red_pos++;
+    if (big_ring_red_pos == BIG_RING_SIZE)
+    {
+      big_ring_red_pos = 0;
+    }
+
+    /* Update the small ring */
+    Serial.println("=====");
+    for (i = SMALL_RING_START; i < (SMALL_RING_START + SMALL_RING_SIZE); i++)
+    {
+      if (i == small_ring_red_pos)
+      {
+        leds[i] = CRGB::Red;
+        Serial.print("red: ");
+        Serial.println(i);
+      }
+      else
+      {
+        leds[i] = CRGB::Blue;
+        Serial.print("blue: ");
+        Serial.println(i);
+      }
+    }
+    small_ring_red_pos++;
+    if (small_ring_red_pos == (SMALL_RING_SIZE + SMALL_RING_START) )
+    {
+      small_ring_red_pos = SMALL_RING_START;
+    }
+    
+    FastLED.show();
+    last_pixel_update_ms = current_ms;
+  }
+      
+}
+
 void setup_pattern()
 {
-  fill_gradient_RGB(leds, NUM_LEDS, CRGB::Red, CRGB::Blue);
+  //fill_gradient_RGB(leds, NUM_LEDS, CRGB::Red, CRGB::Blue);
+  leds[0] = CRGB::Red;
   FastLED.show();
   
 }
@@ -72,6 +137,6 @@ void setup(void)
 
 void loop(void)
 {
-  rotate_pixels();
+  rotate_rings();
 
 }
